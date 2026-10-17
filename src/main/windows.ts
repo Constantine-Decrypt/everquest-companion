@@ -216,7 +216,7 @@ export function WEB_PREFERENCES(preload: string): Electron.WebPreferences {
     // The preload runs with Node available; page JS cannot see it or its globals.
     contextIsolation: true,
     // See the note above — the only reason this isn't `true`.
-    sandbox: false,
+    sandbox: true,
     // No Node in the page, in workers, or in any sub-frame. All three are Electron defaults
     // today; all three are stated because flipping any one of them silently un-does
     // contextIsolation's value.

@@ -581,7 +581,7 @@ export function initUpdater(
   ipcMain.handle(IPC.getAppVersion, () => app.getVersion())
   ipcMain.handle(IPC.getUpdateStatus, () => lastStatus)
 
-  if (!app.isPackaged) {
+  if (!app.isPackaged || /(?:^|-)dev(?:[.-]|$)/i.test(app.getVersion())) {
     // Say so in the status itself: without the flag the chip renders "not checked yet"
     // forever (dev never checks), which reads as a broken updater rather than an absent one.
     // No checkedAt — a stamp inherited from the store would claim a check this process

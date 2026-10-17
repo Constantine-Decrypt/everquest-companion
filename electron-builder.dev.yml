@@ -1,0 +1,13 @@
+extends: ./electron-builder.yml
+
+appId: com.jmoyers.everquest-companion.dev
+productName: EQ Legends Companion Dev
+
+directories:
+  output: release/dev/${version}
+
+publish: null
+
+nsis:
+  shortcutName: EQ Legends Companion Dev
+  artifactName: everquest-companion-DEV-Setup-${version}.${ext}
