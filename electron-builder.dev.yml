@@ -1,3 +1,4 @@
+
 extends: ./electron-builder.yml
 
 appId: com.jmoyers.everquest-companion.dev
@@ -8,6 +9,19 @@ directories:
 
 publish: null
 
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+
 nsis:
   shortcutName: EQ Legends Companion Dev
   artifactName: everquest-companion-DEV-Setup-${version}.${ext}
+
+portable:
+  artifactName: everquest-companion-DEV-Portable-${version}.${ext}
+  
