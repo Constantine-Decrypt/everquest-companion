@@ -61,6 +61,21 @@ will never auto-update again. Uninstall **eq-tools** once from Settings → Apps
 the new installer. Your settings, alerts and sound packs carry over automatically on
 first launch (the old folder is left in place, untouched, as a backup).
 
+### Development release — v1.16.1-dev.3
+
+The development build includes updated application dependencies addressing eight moderate security vulnerabilities, with no intended gameplay feature changes.
+
+**Windows 10/11 (64-bit):**
+
+Download the files from the [development releases page](https://github.com/Constantine-Decrypt/everquest-companion/releases) once v1.16.1-dev.3 is published.
+
+- **Installer:** `everquest-companion-DEV-Setup-1.16.1-dev.3.exe` — installs EQ Legends Companion Dev.
+- **Portable:** `everquest-companion-DEV-Portable-1.16.1-dev.3.exe` — runs without the normal installation process.
+
+The development application uses a separate application identity from the standard release. It does not use the standard application's automatic-update configuration.
+
+Code-signing status will be confirmed before publication. Windows may display a security warning if an executable is unsigned.
+
 ## Updates
 
 The app updates itself in the background from GitHub Releases. When a new version has
