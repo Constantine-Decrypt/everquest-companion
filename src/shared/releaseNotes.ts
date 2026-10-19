@@ -136,6 +136,16 @@ export interface ReleaseNote {
  */
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '1.16.1',
+    date: '2026-10-19',
+    entries: [
+      {
+        kind: 'fixed',
+        text: 'Updated application dependencies to address eight moderate security vulnerabilities. No gameplay features or settings were changed.'
+      }
+    ]
+  },
+  {
     version: '1.16.0',
     date: '2026-09-03',
     entries: [
