@@ -63,19 +63,72 @@ first launch (the old folder is left in place, untouched, as a backup).
 
 ### Development release — v1.16.1-dev.3
 
-The development build includes updated application dependencies addressing eight moderate security vulnerabilities, with no intended gameplay feature changes.
+**Latest development release:** [v1.16.1-dev.3](https://github.com/Constantine-Decrypt/everquest-companion/releases/tag/dev-v1.16.1-dev.3)
 
-**Windows 10/11 (64-bit):**
+This development edition includes Electron security hardening, dependency
+security updates, and separate Windows development packaging. It is maintained
+independently from the standard application.
 
-Download the files from the [development releases page](https://github.com/Constantine-Decrypt/everquest-companion/releases) once v1.16.1-dev.3 is published.
+**Windows 10/11 (64-bit) downloads:**
 
-- **Installer:** `everquest-companion-DEV-Setup-1.16.1-dev.3.exe` — installs EQ Legends Companion Dev.
-- **Portable:** `everquest-companion-DEV-Portable-1.16.1-dev.3.exe` — runs without the normal installation process.
+- **Installer:** [everquest-companion-DEV-Setup-1.16.1-dev.3.exe](https://github.com/Constantine-Decrypt/everquest-companion/releases/download/dev-v1.16.1-dev.3/everquest-companion-DEV-Setup-1.16.1-dev.3.exe)
+- **Portable:** [everquest-companion-DEV-Portable-1.16.1-dev.3.exe](https://github.com/Constantine-Decrypt/everquest-companion/releases/download/dev-v1.16.1-dev.3/everquest-companion-DEV-Portable-1.16.1-dev.3.exe)
 
-The development application uses a separate application identity from the standard release. It does not use the standard application's automatic-update configuration.
+#### Security improvements
 
-Code-signing status will be confirmed before publication. Windows may display a security warning if an executable is unsigned.
+**Electron sandboxing and renderer isolation**
 
+- Electron renderer sandboxing is enabled with `sandbox: true`.
+- Context isolation is enabled with `contextIsolation: true`.
+- Node.js integration is disabled in renderer pages, workers, and subframes.
+- Web security and same-origin enforcement remain enabled.
+- Insecure mixed content is disabled.
+- Webviews and drag-and-drop navigation are disabled.
+- Experimental Chromium features are disabled.
+- Preload scripts expose application functionality through Electron's
+  `contextBridge` and `ipcRenderer` rather than direct renderer Node.js access.
+
+**Additional application hardening**
+
+- Navigation and new-window creation are restricted by centralized
+  web-contents security policies.
+- Webview attachment attempts are blocked.
+- Application session permissions are denied by default.
+- Content Security Policy (CSP) restricts executable content.
+- Security-related window preferences are centralized to reduce
+  configuration drift between application windows.
+
+**Dependency security**
+
+- Development dependencies were updated to address reported vulnerabilities.
+- The deprecated `encoding` dependency was removed.
+- The vulnerable `global-agent` dependency was replaced.
+- `npm audit` reported zero vulnerabilities when dev3 was built.
+
+#### Development release history
+
+| Version | Changes |
+| --- | --- |
+| **v1.16.1-dev.1** | Introduced the Electron sandbox/security work, separate development packaging, and a portable Windows executable. |
+| **v1.16.1-dev.2** | Updated dependencies and removed the deprecated `encoding` package. |
+| **v1.16.1-dev.3** | Replaced the vulnerable `global-agent` dependency, completed additional dependency cleanup, and published updated development executables. |
+
+The sandbox and renderer hardening were introduced earlier in the development
+series; they are not new features introduced by dev3 alone.
+
+#### Installation, signing, and updates
+
+- The development edition uses a separate application identity from the
+  standard release.
+- The installer installs **EQ Legends Companion Dev**.
+- The portable executable runs without the normal installation process.
+- **Both dev3 executables are unsigned.** Windows SmartScreen may display
+  an unknown-publisher warning.
+- Development builds do not use the standard application's automatic-update
+  configuration. The automatic-update instructions below describe the
+  standard application, not this development edition.
+- No gameplay feature changes were intended as part of the dev3 dependency
+  security update.
 ## Updates
 
 The app updates itself in the background from GitHub Releases. When a new version has
