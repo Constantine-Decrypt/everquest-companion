@@ -142,6 +142,26 @@ export const RELEASE_NOTES: readonly ReleaseNote[] = [
       {
         kind: 'fixed',
         text: 'Updated application dependencies to address eight moderate security vulnerabilities. No gameplay features or settings were changed.'
+      },
+      {
+        kind: 'fixed',
+        text: 'Removed deprecated dependencies and replaced the vulnerable global-agent package. The dependency audit reported zero vulnerabilities at build time.'
+      },
+      {
+        kind: 'changed',
+        text: 'Enabled Electron sandboxing and context isolation to strengthen application security.'
+      },
+      {
+        kind: 'changed',
+        text: 'Disabled Node.js integration in application pages and restricted access to privileged application functions.'
+      },
+      {
+        kind: 'changed',
+        text: 'Strengthened navigation, webview restrictions, session permissions, and content security protections.'
+      },
+      {
+        kind: 'changed',
+        text: 'The development edition uses a separate application identity and does not use the standard release automatic-update configuration.'
       }
     ]
   },
