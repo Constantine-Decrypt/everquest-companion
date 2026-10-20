@@ -175,32 +175,18 @@ export function isOverlayOpen(kind: OverlayKind): boolean {
 // Electron default — a default is a decision someone else can change in a major bump, and
 // `npm audit`-style reviews read this object, not Electron's changelog.
 //
-// WHY `sandbox: false` — MEASURED, not assumed. The two preloads are built by electron-vite
-// from a two-entry rollup input (src/preload/{index,overlay}.ts) and both import the shared
-// `src/shared/ipc.ts` channel registry, so rollup hoists it into
-// `out/preload/chunks/ipc-<hash>.js` and each preload begins `require("./chunks/ipc-….js")`.
-// A SANDBOXED preload's `require` is NOT Node's: it resolves `electron` plus a small
-// polyfilled set (events/timers/url) and nothing else. Flipping this to `true` and running
-// `npm run test:e2e` fails exactly there — the harness times out with no UI, and the e2e
-// errors.log carries:
+// ELECTRON SANDBOX ENABLED:
+// All application windows use sandbox: true through WEB_PREFERENCES.
+// Preloads expose approved functionality through contextBridge and ipcRenderer;
+// renderer pages cannot access Node.js APIs directly.
 //
-//   [main:preload-error] module not found: ./chunks/ipc-D4DrnWdv.js
-//       at preloadRequire (node:electron/js2c/sandbox_bundle)
+// Earlier builds encountered preload failures when shared IPC code was emitted
+// as an external chunk. The current development build emits self-contained
+// preload entry points without those external chunk references.
 //
-// i.e. `window.eq` is never installed and the app is silently dead. Nothing in the preloads
-// themselves needs Node (they use exactly `contextBridge` + `ipcRenderer` — zero `process`,
-// zero `fs`; `grep -c 'process\.' out/preload/index.js` is 0), so this is a PACKAGING blocker,
-// not a design one: `sandbox: true` becomes available the moment each preload is emitted as
-// ONE self-contained file. That is an electron.vite.config.ts change (a per-entry preload
-// build, since rollup will always hoist a module shared by two entries into a chunk), owned
-// outside this pass and written up as the top recommendation of the security report.
-// `app.enableSandbox()` is blocked by the same finding, for the same reason.
-//
-// Until then the mitigations that actually matter without the OS sandbox are all on:
-// contextIsolation (the preload's Node-capable context is unreachable from page JS), no
-// nodeIntegration in any form, a deny-by-default navigation/window-open/webview policy
-// (hardenWebContents), permissions denied wholesale (hardenSession), and a CSP with no
-// script-src escape hatch in either page.
+// Defense in depth also includes context isolation, disabled Node integration,
+// deny-by-default navigation and window creation, denied permissions, webview
+// restrictions, and Content Security Policy enforcement.
 //
 // EXPORTED SINCE JOS-139, and the rule it protects is unchanged. It was module-private on the
 // argument that every window in this app is created in this file, which made "never inline a
@@ -215,7 +201,7 @@ export function WEB_PREFERENCES(preload: string): Electron.WebPreferences {
     preload,
     // The preload runs with Node available; page JS cannot see it or its globals.
     contextIsolation: true,
-    // See the note above — the only reason this isn't `true`.
+    // Sandbox renderer processes to restrict access to operating-system resources.
     sandbox: true,
     // No Node in the page, in workers, or in any sub-frame. All three are Electron defaults
     // today; all three are stated because flipping any one of them silently un-does
