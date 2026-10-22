@@ -22,7 +22,9 @@ import { type JSX, Suspense, lazy } from 'react'
 import { CircularProgress } from '@mui/material'
 import { DEV_TOOLS, OWNER_TOOLS } from './devFlags'
 
-const LazyTriageView = DEV_TOOLS ? lazy(() => import('./features/triage/TriageView')) : null
+const LazyTriageView: React.LazyExoticComponent<
+  typeof import('./features/triage/TriageView').default
+> | null = null
 
 /** The owner's triage tab — nothing at all in a build without the flag, or a checkout without
  *  the opt-in. */

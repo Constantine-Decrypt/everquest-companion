@@ -50,7 +50,7 @@ function Check($name, $ok, $detail = '') {
 # The published release's PERMANENT links. The versioned asset carries the version in its
 # filename and so cannot be hard-coded anywhere; build.yml uploads a byte copy under the
 # stable name for exactly this reason (it is what the website's Download button uses too).
-$releaseBase = 'https://github.com/jmoyers/everquest-companion/releases/latest/download'
+$releaseBase = 'https://github.com/Constantine-Decrypt/everquest-companion/releases/latest/download'
 $setupName = 'everquest-companion-Setup.exe'
 $sumsName = 'SHA256SUMS.txt'
 

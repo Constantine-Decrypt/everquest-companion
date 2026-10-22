@@ -75,7 +75,7 @@ const read = (p: string): string => readFileSync(join(TEST_ROOT, p), 'utf8')
 function httpError(status: number, statusMessage: string): Error {
   const err = new Error(
     `${String(status)} ${statusMessage}\n` +
-      'method: GET url: https://github.com/jmoyers/everquest-companion/releases/latest\n' +
+      'method: GET url: https://github.com/Constantine-Decrypt/everquest-companion/releases/latest\n' +
       '          Data:\n          \n          \nHeaders: {"content-type":"application/json"}'
   )
   err.name = 'HttpError'
@@ -256,7 +256,7 @@ test('THE THIRD SPELLING OF A STATUS: `HttpError: <n>` interpolated into a sente
   const linux = Object.assign(
     new Error(
       'Cannot find latest-linux.yml in the latest release artifacts ' +
-        '(https://github.com/jmoyers/everquest-companion/releases/latest): HttpError: 404 Not Found'
+        '(https://github.com/Constantine-Decrypt/everquest-companion/releases/latest): HttpError: 404 Not Found'
     ),
     { code: 'ERR_UPDATER_LATEST_VERSION_NOT_FOUND' }
   )

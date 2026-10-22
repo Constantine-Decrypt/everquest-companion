@@ -64,7 +64,6 @@ import { E2E } from '../e2e'
  *
  * e.g. 'https://<apiId>.execute-api.us-east-1.amazonaws.com/v1/feedback'
  */
-const COMPILED_FEEDBACK_API_URL = 'https://pcy0z3xjp9.execute-api.us-east-1.amazonaws.com/v1/feedback'
 
 /**
  * The S3 bucket the presigned POST must target, and its region. EMPTY alongside the API URL:
@@ -258,8 +257,7 @@ const DEV_ENDPOINT = devEndpointFor({
  * non-Electron process, including the test runner — this is byte-identical to the compiled
  * constant, because `DEV_ENDPOINT` is ''.
  */
-export const FEEDBACK_API_URL: string =
-  DEV_ENDPOINT === '' ? COMPILED_FEEDBACK_API_URL : DEV_ENDPOINT
+export const FEEDBACK_API_URL: string = ''
 
 /**
  * The one extra origin `allowedUploadUrl` accepts, and ONLY under the dev gate: the origin of

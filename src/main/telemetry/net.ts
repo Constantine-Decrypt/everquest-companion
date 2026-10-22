@@ -35,7 +35,7 @@ import type { TelemetryBatch, TelemetryPrefs } from '../../shared/telemetry'
  *
  * This is the only value any build can ever use. It is a constant, not a setting.
  */
-export const TELEMETRY_API_URL = 'https://pcy0z3xjp9.execute-api.us-east-1.amazonaws.com/v1/telemetry'
+export const TELEMETRY_API_URL = ''
 
 /** JSON POST budget. A batch is counters, not a log slice — feedback's submit budget is plenty. */
 export const TELEMETRY_TIMEOUT_MS = 15_000

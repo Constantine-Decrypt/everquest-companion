@@ -49,7 +49,7 @@ unfinished triage. Rules:
    log). "Seen it before, still WATCHing" is a valid disposition only if the
    ledger says so by fingerprint; a family with no recorded disposition is
    new work, however familiar it feels.
-3. **GitHub issues** — `gh issue list --repo jmoyers/everquest-companion --state open`,
+3. **GitHub issues** — `gh issue list --repo Constantine-Decrypt/everquest-companion --state open`,
    then `gh issue view <n>` for bodies (screenshots live there).
 4. **The Reddit threads** — `?sort=new` to surface fresh comments:
    - https://www.reddit.com/r/EQLegends/comments/1vfs5df/sharing_a_companion_app/?sort=new

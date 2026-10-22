@@ -33,8 +33,7 @@ import { OWNER_TOOLS } from './ownerTools'
 import { app, BrowserWindow, protocol, session } from 'electron'
 import { IPC } from '../shared/ipc'
 import { errorLogPath, flushErrorLogSync, logError, logInfo } from './errorLog'
-import { startQueueFlush, stopQueueFlush } from './feedback'
-import { flushRingSync, startTelemetry, stopTelemetry } from './telemetry'
+import { flushRingSync } from './telemetry'
 import { registerAppSchemes } from './appSchemes'
 import { applyGraphicsCompatibilityFlags, applyGraphicsSafeMode } from './graphics'
 import { installImageCacheProtocol } from './imageCache'
@@ -54,7 +53,6 @@ import { initPresenceEffects, stopPresenceEffects } from './presenceEffects'
 import { provisionDefaultPacks } from './provisionPacks'
 import { removedPackIds } from './storeSoundPacks'
 import { startTailing, stopSession } from './session'
-import { runSmokeFeedback } from './smokeFeedback'
 import { STORE_READY_MS, getOverlayConfig, getPerfHudPrefs } from './store'
 // The z-order guard's tally, read once at quit (JOS-368; see `logTopmostSavings`).
 import { topmostStats } from './topmost'
@@ -145,48 +143,6 @@ noteHeapAfterData()
 // sat inside the epoch arm: deleting and recreating your character while the app is tailing is
 // the one case the engine bumps its own epoch for, and its `moduleChanged` cursors carry the
 // re-read without needing a special signal from here.
-
-
-// ---------------------------------------------------------------------------------------
-// DEV-ONLY: the feedback-triage IPC surface (src/main/triage/**).
-// ---------------------------------------------------------------------------------------
-//
-// This is the operator's window onto the feedback backlog — the same Aurora DSQL rows and S3
-// slices `scripts/triage-feedback.mts` reads, over the same IAM door. It exists in the OWNER's
-// dev app and nowhere else, and there are THREE independent reasons a shipped build cannot
-// reach it:
-//
-//   1. THIS GATE, which is `OWNER_TOOLS` since JOS-72 (src/shared/ownerTools.ts) and no longer
-//      "am I a dev build?". `app.isPackaged` is false in a dev run — but it is also false in a
-//      SELF-COMPILED build from this public repo, which is how a stranger's macOS recompile
-//      ended up with the owner's backlog tab in its nav drawer. So the predicate now also
-//      requires `EQ_OWNER_TOOLS=1`, which no fresh checkout has; `E2E` still excludes the
-//      headless harness, which builds production-shaped and must stay off the network. The
-//      import is DYNAMIC, so a build without the opt-in never even evaluates the module.
-//   2. THE DEPENDENCIES. That module reaches `pg` and `@aws-sdk/*` — devDependencies, which
-//      electron-builder never packages. A build with this gate patched out still could not
-//      resolve them. The property is structural, not a runtime check.
-//   3. THE CREDENTIALS. Auth is an IAM token derived locally from the LAUNCHING SHELL's AWS
-//      profile (AWS_PROFILE, default 'eqc'). There is no password to leak, and a shell without
-//      the owner's credentials gets IAM denials on the first statement.
-//
-// Failure to load is logged and startup continues: a dev tool must never be able to take the
-// app down. `closeDevTriage` is the teardown — a live DSQL socket would otherwise hold the
-// process open, the same hang the CLI's `finally` exists for.
-let closeDevTriage: (() => Promise<void>) | null = null
-
-function registerDevTriageIpc(): void {
-  if (!OWNER_TOOLS) return
-  void import('./triage/ipc')
-    .then(({ registerTriageIpc }) => {
-      closeDevTriage = registerTriageIpc()
-      logInfo(
-        '[everquest-companion] Owner triage IPC registered (EQ_OWNER_TOOLS=1, AWS profile auth).'
-      )
-    })
-    .catch((err: unknown) => logError('main:triage', err))
-}
-
 // Single-instance lock (Task #23): a second launch (e.g. re-running the installed
 // app, or an auto-update restart) must not spin up a second window tailing the same
 // log. If we don't get the lock, quit immediately; the primary instance receives a
@@ -225,7 +181,6 @@ if (!gotSingleInstanceLock) {
       `[everquest-companion] Channel '${CHANNEL}' - userData ${USER_DATA}, error log ${errorLogPath()}`
     )
     registerIpc()
-    registerDevTriageIpc()
     // Trust boundary, installed BEFORE the first window exists: the catch-all fires for every
     // webContents this process will ever create (main window, each overlay, anything a future
     // feature adds), which is the only placement that can't be forgotten later.
@@ -317,18 +272,6 @@ if (!gotSingleInstanceLock) {
         markStartupPhase('replayDone')
         logError('main:startTailing', err)
       })
-      // The post-release smoke hook (src/main/smokeFeedback.ts). A NO-OP on every launch that
-      // is not one: without `EQ_SMOKE_FEEDBACK` in the environment it returns before touching
-      // anything, and it refuses outright under EQ_E2E. When it IS armed it files exactly one
-      // bug report through `submitFeedback` — the same call the dialog's Send button makes,
-      // through every normal layer — and then quits.
-      // HERE, chained off `startTailing`, because the report attaches a LOG SLICE: the active
-      // character has to be resolved and the first scan settled before there is anything to
-      // slice. `.finally` rather than `.then` so a scan that failed still leaves the harness a
-      // verdict instead of a VM that hangs until the host's timeout.
-      .finally(() => {
-        void runSmokeFeedback()
-      })
     markStartupPhase('tailAttached')
     // THE DATA-SERVER ENGINE (JOS-459, docs/plans/data-server.md), and since JOS-495 THIS IS THE
     // ORDINARY PATH: `EQC_ENGINE=0` is what makes it return before touching anything, and nothing
@@ -355,7 +298,6 @@ if (!gotSingleInstanceLock) {
     // The E2E / no-endpoint guards live inside `startQueueFlush` (one predicate,
     // `queueFlushEnabled` in net.ts, shared with `flushQueue`) rather than being restated
     // here — two copies of a network gate is how one of them drifts.
-    startQueueFlush()
     // Usage analytics (docs/plans/usage-analytics.md wave A1), started right beside the feedback
     // drain and for the same reasons: after the window exists, timers unref'd, and every gate
     // inside `startTelemetry` rather than restated here.
@@ -368,7 +310,6 @@ if (!gotSingleInstanceLock) {
     // has rendered (`telemetryFlushEnabled`, telemetry/net.ts); when the notice is answered
     // mid-session the loop starts then, not next launch. Same predicate discipline as
     // `queueFlushEnabled` — one gate, in one place.
-    startTelemetry(Date.now() - PROCESS_START_MS)
     // Self-provision the shipped voice packs (Task #39): a CI-built installer ships
     // WITHOUT the gitignored peon/sc_marine packs, so a fresh install's seeded
     // charm-break alert would reference a missing sound. Download any missing default
@@ -538,12 +479,10 @@ app.on('window-all-closed', () => {
   teardownStep('main:stopEngine', stopEngineSupervisor)
   // Stop the feedback drain's timers. They are unref'd, so they cannot be the reason the
   // process lives on; this is about not starting an attempt into a process that is quitting.
-  teardownStep('main:stopQueueFlush', stopQueueFlush)
   // Close the analytics session: records `sessionEnd` into the LOCAL ring (duration + how many
   // tabs were visited) and stops the heartbeat. Nothing is transmitted — there is nowhere to
   // transmit to — and the timers were unref'd anyway, so this is about writing the last record
   // before the process goes, not about letting it go.
-  teardownStep('main:stopTelemetry', stopTelemetry)
   // Stop the HUD's sampler and make sure this launch left a startup profile behind. The timers
   // are unref'd, so this is about not sampling a process that is quitting — and about the launch
   // that never reached `rendererHydrated` still writing what it DID reach, which is exactly the
@@ -561,10 +500,5 @@ app.on('window-all-closed', () => {
   // no app-side register to flush, and writing one here would be this process publishing its own
   // (empty) opinion over the file the engine has been maintaining, at the one moment nothing is
   // left to correct it. That is the exact asymmetry `stopEngineClient` refuses for the same file.
-  // Dev only, and null in every other build: a live DSQL socket is not a timer and would hold
-  // the process open long past the last window.
-  teardownStep('main:triage', () => {
-    if (closeDevTriage) void closeDevTriage().catch((err: unknown) => logError('main:triage', err))
-  })
   if (process.platform !== 'darwin') app.quit()
 })

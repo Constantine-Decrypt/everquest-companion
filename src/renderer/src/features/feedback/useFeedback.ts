@@ -353,43 +353,33 @@ function readCrashPrefill(): FeedbackPrefill | null {
   }
 }
 
-export interface FeedbackDialogControl {
-  open: boolean
-  prefill: FeedbackPrefill | undefined
-  openFeedback: (prefill?: FeedbackPrefill) => void
-  close: () => void
-}
-
 /**
  * App-level ownership of the dialog: who has it open and what it was seeded with. Also the one
  * place the ErrorBoundary's parked crash is picked up — App.tsx mounts once per reload, which
  * is exactly when a "Report this" reload arrives.
  */
+export interface FeedbackDialogControl {
+  openFeedback: (prefill?: FeedbackPrefill) => void
+}
+
+/**
+ * Open GitHub Issues in the user's browser.
+ * No diagnostic information is transmitted automatically.
+ */
 export function useFeedbackDialog(): FeedbackDialogControl {
-  const [open, setOpen] = useState(false)
-  const [prefill, setPrefill] = useState<FeedbackPrefill | undefined>(undefined)
-
-  useEffect(() => {
-    const crash = readCrashPrefill()
-    if (!crash) return
-    setPrefill(crash)
-    setOpen(true)
-  }, [])
-
   const openFeedback = useCallback((p?: FeedbackPrefill): void => {
-    setPrefill(p)
-    setOpen(true)
-    // usage-analytics §2/§3: reach ("did anyone find this at all") and the first step of the
-    // feedback funnel, whose interesting number is the GAP between opened and sent. Both are
-    // counts with no content attached — the schema has no field the description could go in.
-    trackFeature('feedbackOpen')
-    track({ t: 'funnelStep', funnel: 'feedback', step: 'dialogOpened' })
-  }, [])
-  const close = useCallback((): void => {
-    setOpen(false)
+    const title = p?.type === 'bug' ? 'Bug report' : 'Feedback'
+    const params = new URLSearchParams({ title })
+    const url = `https://github.com/Constantine-Decrypt/everquest-companion/issues/new?${params.toString()}`
+
+    const link = document.createElement('a')
+    link.href = url
+    link.target = '_blank'
+    link.rel = 'noreferrer noopener'
+    link.click()
   }, [])
 
-  return { open, prefill, openFeedback, close }
+  return { openFeedback }
 }
 
 export interface FeedbackState {

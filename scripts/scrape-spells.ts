@@ -58,7 +58,7 @@ import type { SpellDbFile, SpellEntry } from '../src/shared/types'
 import { parseDurationMs } from '../src/shared/spellDuration'
 
 const API = 'https://eqlwiki.com/api.php'
-const UA = 'everquest-companion/0.1 (+https://github.com/jmoyers/everquest-companion) spell catalog'
+const UA = 'everquest-companion/0.1 (+https://github.com/Constantine-Decrypt/everquest-companion) spell catalog'
 
 /** Milliseconds between HTTP requests. Sequential, never concurrent. */
 const THROTTLE_MS = 1000

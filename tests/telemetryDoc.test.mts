@@ -158,28 +158,31 @@ test('SUBSTANCE: the page prints every bucket RANGE, from the schema’s own edg
   assert.ok(md.includes(String(TELEMETRY_BUFFER_CAP)), 'the page states how much is held locally')
 })
 
-test('THE LIT-BUILD SENTENCE is on the page, with the three facts that make it defensible', () => {
-  // This assertion used to read `/no build sends anything at all/`. It was written to FAIL on
-  // the commit that lit the endpoint, so the page could not keep saying nothing was sent after
-  // something was — the same forcing function SECURITY.md and README got.
+test('THE AWS-FREE BUILD documents that telemetry uploads are disabled', () => {
   const md = committed()
-  assert.match(md, /this build does send/i)
-  assert.match(md, /nothing is\s+sent before the notice/i, 'the consent gate is stated, not implied')
-  assert.match(md, /turning this off deletes/i, 'opt-out is total: the buffer AND the id')
-  assert.match(md, /Preferences/)
-  assert.doesNotMatch(md, /no build sends anything at all/i)
+
+  assert.match(md, /this build does not send telemetry/i)
+  assert.match(md, /AWS telemetry endpoint is disabled/i)
+  assert.match(md, /no longer\s+starts its telemetry collection or upload service/i)
+  assert.match(md, /Usage analytics setting and first-run telemetry notice have been removed/i)
+
+  assert.doesNotMatch(md, /this build does send\b/i)
+  assert.doesNotMatch(md, /nothing is\s+sent before the notice/i)
 })
 
-test('THE OPT-OUT NOTICE IS DISCLOSED — the one send that happens after you said stop', () => {
-  // JOS-109. The page previously read, defensibly, as "turning it off means nothing more leaves
-  // this machine". One thing now does, so this suite pins the disclosure the same way it pins
-  // the lit-build sentence: as a forcing function, not as a courtesy.
+test('AWS-FREE BUILD documents that no opt-out telemetry is transmitted', () => {
   const md = committed()
-  assert.match(md, /One last thing is sent when you turn it off/i)
-  assert.match(md, /so opt-outs can be counted/i, 'the page says WHY, not just that it happens')
-  assert.match(md, /nothing further is ever sent/i, 'the bound on it is stated')
-  assert.match(md, /never retried/i, 'an offline flip is lost, and the page says so')
-  // …and both fieldless events render a sentence rather than an empty table.
-  for (const kind of TELEMETRY_FLIP_KINDS) assert.ok(md.includes(`### \`${kind}\``), kind)
+
+  assert.match(md, /Anonymous usage analytics and automatic error-report uploads are disabled/i)
+  assert.match(md, /There is no Usage analytics switch or first-run telemetry notice/i)
+  assert.match(md, /They do not represent data currently being transmitted/i)
+
+  assert.doesNotMatch(md, /One last thing is sent when you turn it off/i)
+  assert.doesNotMatch(md, /so opt-outs can be counted/i)
+
+  // Preserve coverage of the legacy telemetry schema.
+  for (const kind of TELEMETRY_FLIP_KINDS) {
+    assert.ok(md.includes(`### \`${kind}\``), kind)
+  }
   assert.match(md, /\*\*This event has no fields at all\.\*\*/)
 })

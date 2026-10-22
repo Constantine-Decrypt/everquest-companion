@@ -157,16 +157,9 @@ test('a malformed bucket or region can never produce a match', () => {
 // pinned literally — re-applying the root mints a new one, and a test that fails on a redeploy
 // teaches people to edit tests.
 
-test('the compiled endpoint is https on our own API, in our own region', () => {
-  assert.equal(feedbackEndpointConfigured(), true)
-  const u = new URL(net.FEEDBACK_API_URL)
-  assert.equal(u.protocol, 'https:')
-  assert.match(u.hostname, /^[a-z0-9]+\.execute-api\.us-east-1\.amazonaws\.com$/)
-  assert.equal(u.pathname, '/v1/feedback')
-  assert.equal(u.username, '')
-  assert.equal(u.search, '')
-  assert.equal(net.FEEDBACK_S3_REGION, 'us-east-1')
-  assert.match(net.FEEDBACK_S3_BUCKET, /^eqcompanion-logs-[0-9a-f]+$/)
+test('the compiled AWS feedback endpoint is disabled', () => {
+  assert.equal(feedbackEndpointConfigured(), false)
+  assert.equal(net.FEEDBACK_API_URL, '')
 })
 
 test('the BOUND allowedUploadUrl accepts our bucket and refuses every other host', () => {
@@ -338,14 +331,10 @@ test('queueFlushEnabled: the drain runs only with an endpoint, and never under E
   assert.equal(net.queueFlushEnabled(false, net.FEEDBACK_API_URL), net.feedbackEndpointConfigured())
 })
 
-test('the composition root STARTS the drain and stops it on shutdown', () => {
+test('the composition root does not start the obsolete AWS feedback queue', () => {
   const src = readFileSync(new URL('../src/main/index.ts', import.meta.url), 'utf8')
-  assert.match(src, /import \{ startQueueFlush, stopQueueFlush \} from '\.\/feedback'/)
-  assert.match(src, /^\s*startQueueFlush\(\)$/m)
-  // The stop call rides inside teardownStep() since the zombie-process fix: a throw in any
-  // earlier teardown must not be able to skip this one (or app.quit()). The pin follows it
-  // there — what matters is that the composition root still names the stop on shutdown.
-  assert.match(src, /teardownStep\('main:stopQueueFlush', stopQueueFlush\)/)
+
+  assert.doesNotMatch(src, /^\s*startQueueFlush\(\s*\)\s*;?\s*$/m)
 })
 
 test('both queue entry points route through the ONE guard', () => {

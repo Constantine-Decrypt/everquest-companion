@@ -349,7 +349,7 @@ async function checkGitHubLink(page: Page): Promise<void> {
   })
   check(
     "…pointing at this app's releases page",
-    link.href === 'https://github.com/jmoyers/everquest-companion/releases',
+    link.href === 'https://github.com/Constantine-Decrypt/everquest-companion/releases',
     `href="${link.href}"`
   )
   check(

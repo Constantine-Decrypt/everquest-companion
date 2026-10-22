@@ -33,7 +33,7 @@ Everything is per-character; switch characters and the app re-reads that log.
 checks and stops with a message rather than leaving you an app that won't start.
 
 1. Download `everquest-companion-Setup-<version>.exe` from the
-   [**Releases**](https://github.com/jmoyers/everquest-companion/releases) page.
+   [**Releases**](https://github.com/Constantine-Decrypt/everquest-companion/releases) page.
 2. Run it. It's a one-click, per-user install (like Discord) — no admin prompt, no
    wizard. It adds a Start-menu and desktop shortcut.
 3. In EverQuest, type `/log on`.
@@ -152,58 +152,27 @@ apply now, or it installs the next time you quit.
 
 ## Feedback
 
-**Send feedback** in the nav drawer (also in **Settings → Feedback**) opens a dialog with
-two choices — **Feature request** or **Bug report** — and one box to type in. That box is
-the only thing you fill out; there's no title field and no contact field to fill in.
+EQ Legends Companion uses GitHub Issues for bug reports, feature requests, and general feedback.
 
-A report carries exactly this:
+Select **Send feedback** in the application to open the GitHub Issues page in your browser. You can describe a problem, suggest an improvement, or request a new feature.
 
-- the type (feature or bug) and the description you typed;
-- what the app knows about *itself* — app version, release channel, `win32`, your OS
-  build number, CPU architecture, and the Electron/Chrome/Node versions it's running on;
-- an anonymous per-install id, which exists only to rate-limit and to link your follow-up
-  report to your earlier one. It's a random UUID in a file you own, tied to nothing.
+**[Submit feedback or report a bug](https://github.com/Constantine-Decrypt/everquest-companion/issues/new)**
 
-**It does not contain your character name, your server, your EverQuest install path, your
-Windows user name, or your machine name.** None of those are collected, and none of your
-gameplay, progress, or settings ride along.
+The application no longer submits feedback to the previous AWS feedback service. It does not automatically upload EverQuest logs, system diagnostics, or feedback attachments.
 
-**Bug reports can attach a slice of your EverQuest log**, and this is the one place log
-contents leave your machine. It's opt-in (ticked by default for bugs, and never offered
-for feature requests), covers the last 15, 30, or 60 minutes, and it is **scrubbed before
-you ever see it**: chat, tells, group and guild messages, and `/who` output are dropped
-by the same filter that governs the log fixtures committed to this repo. Your own
-character name, zones, spells, combat lines, and structural events like group joins
-stay — that's what makes a bug reproducible.
+If you choose to include a log excerpt, screenshot, or other information in a GitHub issue, review it before posting. GitHub issues in a public repository are publicly visible.
 
-The dialog shows you the slice, expanded, before you send anything: how many lines it is,
-the exact time span, how many lines the scrub removed, and its compressed size. **Save a
-copy…** writes every byte to a file of your choosing, so you can read the whole thing
-first rather than trusting a preview. Nothing is uploaded until you press Send.
+### Usage analytics and telemetry
 
-**Want a reply?** Put your email or Discord handle in the message itself. That's the only
-way we'll have to reach you, and leaving it out is a perfectly normal way to file.
+Anonymous usage analytics and automatic error-report uploads are disabled.
 
-After a successful send you get a **report id**. It's worth keeping: quote it in a
-[GitHub issue](https://github.com/jmoyers/everquest-companion/issues) and we can delete
-that report's log slice and any contact details you included. See
-[`SECURITY.md`](SECURITY.md) for how long each piece is kept.
+The previous AWS telemetry service no longer starts, and the application does not send telemetry events to that endpoint.
 
-If you're offline, the report is saved and sent the next time the app runs with a working
-connection.
+The former **Usage analytics** setting and first-run telemetry notice have been removed.
 
-**Anonymous usage counts.** Separately from feedback, the app sends anonymous counts —
-session lengths, which views and features get used, whether an update or a voice install
-worked. It's on by default and a one-line bar tells you so the first time you run it;
-nothing is sent before that bar has appeared. **Opt out** there, or the switch in
-**Preferences → Usage analytics**, turns it off and deletes both the buffered events and
-your anonymous id on the spot. There is no free-text field in what it sends, so your
-character names, zones, chat, alert names, paths and log lines cannot travel in it —
-[`TELEMETRY.md`](TELEMETRY.md) lists every event and field, generated from the schema, and
-the same Preferences pane shows you the exact JSON waiting to go and the last batch that
-left. The id it uses is deliberately **not** your feedback install id: the two data sets
-can't be joined, by us or by anyone else. [`SECURITY.md`](SECURITY.md#usage-analytics) has
-the retention details.
+[`TELEMETRY.md`](TELEMETRY.md) documents the legacy telemetry event schema retained in the source code. These definitions do not mean the application currently collects or uploads those events.
+
+See [`SECURITY.md`](SECURITY.md) for additional security and privacy information.
 
 ## Development
 

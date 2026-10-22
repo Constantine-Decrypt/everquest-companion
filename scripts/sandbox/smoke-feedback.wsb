@@ -11,7 +11,7 @@
 
     DIFFERENCES FROM installer-test.wsb, both load-bearing:
       * NO release/ MAPPING. The installer is DOWNLOADED from
-        https://github.com/jmoyers/everquest-companion/releases/latest/download/ - testing the
+        https://github.com/Constantine-Decrypt/everquest-companion/releases/latest/download/ - testing the
         artifact a user would actually get, not a local build. Networking is therefore
         required (it is on by default; do not add <Networking>Disable</Networking>).
       * The results folder is a TWO-WAY channel: the host writes the run's nonce and the

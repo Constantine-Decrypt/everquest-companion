@@ -29,7 +29,7 @@ archive. Layout: `src/main` (Node), `src/preload`, `src/renderer`,
 `src/shared`, `tests/`, `scripts/`. Per-surface detail:
 docs/agents-archive.md.
 
-- Repo: `C:\Users\jmoye\everquest-companion` (public: github.com/jmoyers/everquest-companion).
+- Repo: `C:\Users\Dave\Documents\GitHub\everquest-companion-dev3` (public: github.com/Constantine-Decrypt/everquest-companion).
 - Game log: `C:\Users\Public\Daybreak Game Company\Installed Games\EverQuest
   Legends\Logs\eqlog_<Char>_<server>.txt` — but the path is auto-discovered +
   Settings-overridable now; NEVER hardcode, route through
@@ -785,7 +785,7 @@ alwaysOnTop, click-through pin).
   (security.ts) deliberately or not at all, **and an entry is a HOST PLUS AN
   OPTIONAL PATH SCOPE — write the narrowest one that serves the link** (owner
   ruling, JOS-263). Widened ONCE (JOS-254), with a REPO-SCOPED github.com
-  entry — only `https://github.com/jmoyers/everquest-companion/…` opens; the
+  entry — only `https://github.com/Constantine-Decrypt/everquest-companion/…` opens; the
   three wiki entries stay host-wide because a wiki link's PATH is a page title
   this app cannot predict. The path prefix is matched SEGMENT-AWARE
   (`…-companion-evil` is not inside `…-companion`) against the
@@ -1593,7 +1593,7 @@ the full per-lane evidence lives in docs/agents-archive.md.
   `/S` from `${GetParameters}`/`${GetOptions}` instead.
 - Exe branding: `signAndEditExecutable:true` needs the winCodeSign cache —
   run `scripts/seed-wincodesign.ps1` once per machine. Icon via `gen:icon`.
-- Publish: `publish: github jmoyers/everquest-companion`; installer +
+- Publish: `publish: github Constantine-Decrypt/everquest-companion`; installer +
   `.blockmap` + `latest*.yml` feeds under `release/<version>/`. Unsigned for
   now (SmartScreen "More info → Run anyway" in README); Azure signing turns
   on via repo secrets only — CI args are already conditional.
@@ -1721,7 +1721,11 @@ Always test the CURRENT `npm run dist` output, not a stale release/ exe — a
 clean-machine pass on an old build proves nothing about today's first-run
 provisioning.
 
-### Post-release feedback smoke test (`npm run smoke:release`)
+### Legacy post-release feedback smoke test (removed)
+
+**Historical only:** `npm run smoke:release` and the AWS feedback smoke startup hook
+were removed when in-app feedback switched to GitHub Issues. The procedure below
+describes the former AWS workflow; do not run it for current releases.
 
 ON-DEMAND ONLY — not in CI, not in `npm test`, not in `test:e2e`. Run once
 after a release publishes: a sandbox DOWNLOADS the published installer
@@ -1879,7 +1883,19 @@ plumbing proven). Reuses the tier-2 lifecycle via
   (the card WARNS there rather than explaining). The access violation is
   unidentified: this is a workaround to re-measure when Wine or Electron moves.
 
-## Cloud (feedback backend + future web) — state as of 2026-08-04
+## Legacy cloud infrastructure (historical; inactive in current app)
+
+**Current behavior:** Feedback opens GitHub Issues at
+`Constantine-Decrypt/everquest-companion`. AWS feedback submission, telemetry
+transmission, automatic error-report uploads, and S3 feedback attachments are
+disabled in the current development build. The app no longer starts the old
+feedback queue flush, telemetry worker, or development triage IPC.
+
+The following AWS account, Terraform, database, and operational notes document
+the earlier implementation as of August 2026. They are **not** instructions to
+operate or re-enable these services, and do not establish that any historical
+AWS data or infrastructure has been deleted. Do not deploy or change legacy
+cloud resources without separate owner approval.
 
 - **AWS**: dedicated sub-account `eqcompanion` **001634075447** (org
   management = `jmoyers` 383185690517), region **us-east-1**. CLI: profile
@@ -1940,56 +1956,20 @@ plumbing proven). Reuses the tier-2 lifecycle via
     downgrades count; disjoint from `newInstalls`. Pre-marking counter rows
     carry no id and stay in the user cohort forever — read old days with
     that in mind.
-- **Local dev story**: `scripts/dev-feedback-server.mts` — same contract,
-  same shared validator, failure knobs; the app reaches it via
-  `EQ_FEEDBACK_URL`, honored ONLY behind `!app.isPackaged` (packaged builds
-  must prove the env var does nothing).
-- **Usage analytics**: opt-OUT (owner decision over the integrator's opt-in
-  recommendation) but NOTHING transmits before the first-run notice renders;
-  allowlist schema; separate rotatable analyticsId; payload viewer +
-  TELEMETRY.md (plan: docs/plans/usage-analytics.md). A1/A2/A3 are ALL LIVE:
-  a second Lambda (`eqcompanion-telemetry-ingest`) behind `POST
-  /v1/telemetry`, aggregating on arrival into the three tables — NO
-  raw-event store — plus EMF metrics, a dashboard, `analytics
-  digest|wipe|open|close`, and the Triage → Analytics tab. **The endpoint is
-  LIT**: `TELEMETRY_API_URL` is a compiled-in constant;
-  tests/telemetryNet.test.mts pins the exact URL, the single fetch site, and
-  the consent gates (nothing before the notice; opt-out destroys buffer +
-  id). Full detail: docs/agents-archive.md.
-  **THE CADENCE IS A COST DIAL, THE CONTENT IS NOT (JOS-269, owner ruling
-  2026-08-12).** `FLUSH_INTERVAL_MS` 5 min and `HEARTBEAT_INTERVAL_MS`
-  10 min (flush.ts). Every event is a counter delta that sums server-side,
-  so batching harder loses NOTHING; every flush is one request through API
-  Gateway + Lambda + DSQL, which is the whole bill. The priced cost: a
-  KILLED session's duration coarsens to its last heartbeat. **THREE NUMBERS
-  ARE DERIVED FROM THESE AND MUST MOVE WITH THEM**: `liveSessions.ts
-  BUCKET_MS` (= the heartbeat, or Live halves), the "sessions in the last
-  10 min" tile note, and the sandbox smoke's `$telemetryDwellSec` (must
-  exceed ONE flush tick — nothing leaves the machine except on one;
-  `stopTelemetry` writes the ring, it does not POST). Changing WHAT is
-  collected is a different decision and remains owner law. Full note:
-  docs/agents-archive.md.
-  **THE ADDITIVE-FIELD RULE (JOS-39, and it is a deploy-skew law).** The app
-  auto-updates itself; the ingest Lambda is deployed by hand — so a shipped
-  client is regularly talking to an OLDER copy of the shared contract. A NEW
-  EVENT KIND is fatal under that skew: the shared validator fails the whole
-  batch, the endpoint answers 400, and `telemetryPermanentRefusal` (net.ts)
-  classes 400 as "these bytes will never be accepted" and DROPS the batch — so
-  the client throws away every counter it is carrying, on every flush, until
-  the deploy lands. A NEW OPTIONAL FIELD on an existing kind is free: the
-  validators CONSTRUCT their result field by field, so an older server simply
-  does not copy it across and accepts the batch. Add measurements as fields
-  (`linesParsed` rides on `sessionHeartbeat`/`sessionEnd`), and the client half
-  is then safe to ship BEFORE the additive apply.
-  **USER/OWNER SPLIT (2026-08-05, owner-directed, LIVE).** Every counter row
-  carries a `cohort` ('user'|'owner'), IN the PRIMARY KEY of
-  `usage_daily`/`usage_funnel_daily` and a nullable column on
-  `analytics_install`. Dev builds tag themselves SERVER-SIDE from
-  `env.channel` (no client change, no TELEMETRY.md change); the installed
-  copy is marked by hand with `analytics owner-add <analyticsId>`. Every
-  read defaults to the user cohort; `--cohort all` renders both SIDE BY SIDE
-  and nothing ever sums them. Rows aggregated before a marking keep their
-  cohort and the digest says so.
+- **Legacy local feedback server:** `scripts/dev-feedback-server.mts` and
+  `EQ_FEEDBACK_URL` supported the former AWS-compatible feedback workflow.
+  The current application opens GitHub Issues instead; the old feedback IPC
+  and submission service are not registered at startup.
+- **Legacy usage analytics:** The previous opt-out consent flow, AWS Lambda
+  ingestion, `TELEMETRY_API_URL`, session heartbeat/flush cadence, CloudWatch
+  dashboard, and cohort/retention logic described in
+  `docs/agents-archive.md` and `docs/plans/usage-analytics.md` are historical.
+  In the current development build the telemetry endpoint constant is empty,
+  telemetry startup is disabled, and the first-run notice and Preferences
+  analytics switch are removed. `TELEMETRY.md` retains the legacy event
+  schema for documentation, not active transmission. Do not restore the
+  endpoint or start the worker without an explicit new privacy decision.
+
 ## Known open items
 
 - **Toolchain (JOS-63, landed 2026-08-06)**: electron 43.2.0 / vite 7.3.6 /
@@ -1997,8 +1977,9 @@ plumbing proven). Reuses the tier-2 lifecycle via
   the installer (trim via asarUnpack filters; koffi's excluded prebuilds are
   the worked example). History: docs/agents-archive.md.
 
-- **Feedback loop**: planned in `docs/plans/feedback-triage.md`; F1/F2 have
-  since SHIPPED (see Cloud above) — the plan is historical intent now.
+- **Feedback loop (historical)**: `docs/plans/feedback-triage.md` and the
+  legacy AWS F1/F2 deployment notes describe an earlier implementation.
+  Current feedback opens GitHub Issues; AWS submissions are disabled.
 - Azure signing: waiting on Microsoft identity validation → cert profile +
   app registration + repo secrets.
 - Windows Sandbox: WORKING (last run 2026-08-03, PASS, gating v0.2.0) —

@@ -165,15 +165,10 @@ export const TELEMETRY_DOC_EVENTS: readonly DocEvent[] = [
   {
     t: 'sessionHeartbeat',
     when:
-      'Every 10 minutes while the app is open — the "is anyone using it right now" signal. ' +
-      // JOS-395. The cadence is unchanged and this says so in the same breath as the change: what
-      // moves is only WHERE in the ten minutes a given copy of the app sits, and it is worth one
-      // sentence here because a reader watching their own network would otherwise see the timing
-      // wander and have nowhere to read why.
-      'Which moment in those ten minutes it falls on is picked fresh each time the app starts, ' +
-      'and every one is nudged a few seconds either way, so that many copies of this app started ' +
-      'at the same time do not all call home in the same second — the ten minutes itself never ' +
-      'changes. ' +
+      'Legacy event definition: previously designed to report application activity ' +
+      'approximately every 10 minutes while the application was running. ' +
+      'The timing included randomized offsets to avoid simultaneous uploads. ' +
+      'This event is inactive and is not transmitted by the current application. ' +
       `${STARTUP_WHEN} ${LIVE_RIDER_WHEN}`,
     fields: [
       { name: 'uptimeMs', type: COUNT, note: 'How long this session has been running.' },
@@ -305,7 +300,10 @@ export const TELEMETRY_DOC_EVENTS: readonly DocEvent[] = [
     // and it is sent even when every count is zero. A report with nothing in it is how we know a
     // build is reporting at all — without it, a version that is running fine and a version too old
     // to have this code would look identical.
-    when: 'With each session report (every few minutes, and at close): counts of things that went wrong since the last one. Sent even when they are all zero. Counts only, never messages.',
+    when:
+    'Legacy event definition: previously designed to report counts of application errors ' +
+    'during a session, including zero counts. Only counts were included, not error messages. ' +
+    'This event is inactive and is not transmitted by the current application.',
     fields: [
       { name: 'rendererCrashes', type: COUNT, note: 'Window crashes. The main window only.' },
       // ERRORS ONLY, said out loud (JOS-99): warnings printed by a window reach the developer
@@ -442,24 +440,18 @@ export const TELEMETRY_DOC_EVENTS: readonly DocEvent[] = [
     ]
   },
   {
-    t: 'optOut',
-    // THE ONE EVENT THAT IS SENT AFTER YOU SAID STOP, and the row says so in its first clause
-    // rather than leaving a reader to infer it from the "Turning it off" section below. The
-    // empty field list is not an omission — `telemetryDoc.ts` prints a sentence for it — and it
-    // is the strongest form of the promise: there is no slot on this event for anything to ride.
-    when:
-      'Once, when you turn usage analytics off. It is the last thing this app ever sends, and it ' +
-      'exists so opt-outs can be counted rather than guessed at. Everything else waiting to be ' +
-      'sent is thrown away rather than sent with it, it is never retried if you are offline, and ' +
-      'nothing further is ever sent.',
-    fields: []
-  },
-  {
-    t: 'optIn',
-    when:
-      'Once, when you turn usage analytics back on. The counterpart to the notice above, under ' +
-      'the new random id. It carries nothing either.',
-    fields: []
-  }
+  t: 'optOut',
+  when:
+    'Legacy event definition: previously represented a user disabling usage analytics. ' +
+    'This event is inactive and is not transmitted by the current application.',
+  fields: []
+},
+{
+  t: 'optIn',
+  when:
+    'Legacy event definition: previously represented a user enabling usage analytics. ' +
+    'This event is inactive and is not transmitted by the current application.',
+  fields: []
+}
 ]
 

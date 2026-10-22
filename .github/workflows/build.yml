@@ -475,7 +475,7 @@ jobs:
           # /releases/latest/download/<name> can't be hard-coded anywhere. A
           # byte copy named `everquest-companion-Setup.exe` gives the landing
           # page (site/index.html) a link that never needs editing:
-          #   https://github.com/jmoyers/everquest-companion/releases/latest/download/everquest-companion-Setup.exe
+          #   https://github.com/Constantine-Decrypt/everquest-companion/releases/latest/download/everquest-companion-Setup.exe
           # It is uploaded HERE, to the still-DRAFT release, for the same reason
           # main.yml is: the release must appear ATOMICALLY with every asset a
           # client (or the site) can resolve, or a download mid-publish 404s.

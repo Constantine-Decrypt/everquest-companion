@@ -4,18 +4,14 @@
      Rendered from src/shared/telemetry.ts by `npm run gen:telemetry-doc`.
      tests/telemetryDoc.test.mts fails if this file and the schema disagree. -->
 
-EQ Legends Companion can send anonymous usage counts so the person building it can see
-which parts are used and which parts break. It is **on by default**, you are asked about
-it the first time you run the app, and you can turn it off at any time in
-**Preferences → Usage analytics** — where you can also read the exact events waiting to be
-sent, as JSON.
+EQ Legends Companion does not upload anonymous usage analytics or automatic error reports.
+The previous AWS telemetry service has been disabled, and the application no longer
+starts its telemetry collection or upload service.
 
-**This build does send.** The counts on this page go to one address, run by the person who
-builds this app, in an account used for nothing else — the address is compiled in, and
-nothing in your settings, in the app, or on disk can point it somewhere else. Nothing is
-sent before the notice on your first run has appeared, and turning this off deletes
-everything waiting to be sent **and** your anonymous id, straight away. Preferences shows
-you the last batch that actually left, in full.
+**This build does not send telemetry.** The AWS telemetry endpoint is disabled.
+The Usage analytics setting and first-run telemetry notice have been removed.
+The event definitions below document the legacy telemetry schema retained in the
+source code; they do not indicate that these events are currently collected or uploaded.
 
 ## What can never be collected
 
@@ -32,33 +28,30 @@ Not "what we choose not to collect" — what the schema has no room for:
 Almost every field on this page is a number, or one value from a fixed list printed here,
 so there is simply nowhere for any of that to go.
 
-**One event is different, and it is worth reading about.** `errorReport` sends the
-technical details of a failure: what kind of error it was, a **redacted** version of its
-message, and where in the app’s own program files it happened. It exists because an error
-report nobody can act on is not worth sending. The redaction runs on your machine **and**
-again on arrival — every file path, everything in quotes and every long number in the
-message is replaced first, and a message that arrives unredacted is thrown away rather than
-cleaned up. The file names it sends are the app’s own (they always begin `out/`), never a
-location on your disk. Nothing about your game reaches it: the only thing it says about
-your log is what KINDS of line the app had just read, from the fixed list of kinds.
+**Legacy error-report event:** The `errorReport` schema previously described
+technical failure details, including error categories, redacted messages,
+and application code locations. This event is retained for historical
+documentation only. Automatic error-report uploads are disabled, and
+the application does not transmit these reports.
 
-## What identifies a send
+## Legacy telemetry identifiers
 
-One random id (`analyticsId`), generated on your machine, stored in your settings file, and
-deliberately **different from** the id a feedback report uses — the two cannot be joined.
-You can replace it at any time from Preferences; doing so also throws away everything
-waiting to be sent, and the new id looks like a brand-new install.
+The previous telemetry schema included a random `analyticsId` to identify an
+installation without using a character name or account identifier.
+These fields are retained below to document the historical schema.
+The telemetry service is disabled, so these identifiers are not uploaded.
 
 | Field | Values |
 | --- | --- |
-| `analyticsId` | a random UUID, replaceable from Preferences |
+| `analyticsId` | a random UUID used by the legacy telemetry schema; no longer transmitted |
 | `appVersion` | the app version, e.g. `0.2.0` |
 | `channel` | `prod` · `dev` |
 | `platform` | `win32` · `darwin` · `linux` · `other` |
 | `tzOffsetBucket` | your UTC offset in whole hours (-12 to 14) |
 
-Events are held on your machine (at most 500 of them, oldest dropped first) and would
-be sent in batches, not one by one. Schema version: 1.
+The legacy telemetry schema supported buffering up to 500 events, dropping the oldest first.
+Events were designed to be uploaded in batches. Telemetry collection and uploads are
+disabled in this build. Schema version: 1.
 
 ## Events
 
@@ -72,7 +65,7 @@ Once, when the app finishes starting up.
 
 ### `sessionHeartbeat`
 
-Every 10 minutes while the app is open — the "is anyone using it right now" signal. Which moment in those ten minutes it falls on is picked fresh each time the app starts, and every one is nudged a few seconds either way, so that many copies of this app started at the same time do not all call home in the same second — the ten minutes itself never changes. Present on the first of these that follows startup, once per launch: how long reading your log history took, and how smoothly. Reading a log after switching character is deliberately not measured. Every number in the group is a count or a duration; several are ranges rather than exact figures, and which is which is stated field by field below. It also carries how smoothly the app itself was running since the previous one: how late its own timers arrived, how long its reads of your log took, which of its windows and switches were on, how long it spent tidying its own memory, and how long six of its own named internal steps took. All of it is counts and ranges about this computer - no line of your log, and no part of one, is ever sent. Each group is left out entirely when there is nothing to say (no character attached, or the check was not running).
+Legacy event definition: previously designed to report application activity approximately every 10 minutes while the application was running. The timing included randomized offsets to avoid simultaneous uploads. This event is inactive and is not transmitted by the current application. Present on the first of these that follows startup, once per launch: how long reading your log history took, and how smoothly. Reading a log after switching character is deliberately not measured. Every number in the group is a count or a duration; several are ranges rather than exact figures, and which is which is stated field by field below. It also carries how smoothly the app itself was running since the previous one: how late its own timers arrived, how long its reads of your log took, which of its windows and switches were on, how long it spent tidying its own memory, and how long six of its own named internal steps took. All of it is counts and ranges about this computer - no line of your log, and no part of one, is ever sent. Each group is left out entirely when there is nothing to say (no character attached, or the check was not running).
 
 | Field | Values | What it means |
 | --- | --- | --- |
@@ -240,7 +233,7 @@ When you reach a step of one of the three flows listed below.
 
 ### `healthCounters`
 
-With each session report (every few minutes, and at close): counts of things that went wrong since the last one. Sent even when they are all zero. Counts only, never messages.
+Legacy event definition: previously designed to report counts of application errors during a session, including zero counts. Only counts were included, not error messages. This event is inactive and is not transmitted by the current application.
 
 | Field | Values | What it means |
 | --- | --- | --- |
@@ -287,14 +280,14 @@ When the app hits an error: the technical details of the failure, so it can be f
 
 ### `optOut`
 
-Once, when you turn usage analytics off. It is the last thing this app ever sends, and it exists so opt-outs can be counted rather than guessed at. Everything else waiting to be sent is thrown away rather than sent with it, it is never retried if you are offline, and nothing further is ever sent.
+Legacy event definition: previously represented a user disabling usage analytics. This event is inactive and is not transmitted by the current application.
 
 **This event has no fields at all.** It says only that it happened, alongside the
 five facts every send carries (above).
 
 ### `optIn`
 
-Once, when you turn usage analytics back on. The counterpart to the notice above, under the new random id. It carries nothing either.
+Legacy event definition: previously represented a user enabling usage analytics. This event is inactive and is not transmitted by the current application.
 
 **This event has no fields at all.** It says only that it happened, alongside the
 five facts every send carries (above).
@@ -311,8 +304,8 @@ A `funnelStep` event says which step of one of these you reached — nothing els
 
 ## Buckets
 
-Where a raw number would say too much about one person, the app sends a RANGE instead.
-These are the exact ranges, taken from the schema:
+The legacy telemetry schema used ranges instead of exact numbers to limit detail.
+Telemetry uploads are disabled. These are the historical ranges defined in the schema:
 
 **`coldStartMsBucket`** — How long the app took to start.
 
@@ -502,17 +495,16 @@ These are the exact ranges, taken from the schema:
 | 4 | 1200 MB – 2000 MB |
 | 5 | ≥ 2000 MB |
 
-## Turning it off
+## Telemetry status
 
-**Preferences → Usage analytics** has one switch. Turning it off stops collection, throws
-away everything currently held on your machine, and discards the random id — all
-immediately. Nothing is kept to be sent later. Turning it back on starts from empty, with a
-new id, which counts as a brand-new install.
+Anonymous usage analytics and automatic error-report uploads are disabled.
+The application does not start the previous AWS telemetry service.
 
-**One last thing is sent when you turn it off, and this is it:** a single notice saying the
-switch was turned off, so opt-outs can be counted rather than guessed at. It carries no
-measurements at all, only the five facts at the top of this page that every send carries.
-Everything else waiting to be sent is thrown away rather than sent with it, and nothing
-further is ever sent. If your machine is offline at that moment the notice is simply lost;
-it is never retried, because keeping something to send later is exactly what turning this
-off is supposed to stop. Turning it back on sends the matching notice under the new id.
+There is no Usage analytics switch or first-run telemetry notice because
+the telemetry collection and upload service is no longer active.
+
+The event definitions above are retained as historical technical documentation.
+They do not represent data currently being transmitted.
+
+To report a problem or suggest an improvement, use GitHub Issues:
+https://github.com/Constantine-Decrypt/everquest-companion/issues

@@ -47,7 +47,6 @@ import PreferencesView from './features/preferences/PreferencesView'
 // menu opens them, and the Appearance rows tag a closed one). Both are recorded HERE, at the root.
 // See the effect.
 import { peekPrefsSnapshot, recordPref } from './features/preferences/prefsSnapshot'
-import FeedbackDialog from './features/feedback/FeedbackDialog'
 // OWNER-ONLY. `devTriage` holds the single `DEV_TOOLS ? lazy(() => import(…)) : null` — the
 // STRIP, which is a compile-time question and stays on `DEV_TOOLS`; in a build without the flag
 // its only use below is dead code, so rollup drops the import and the entire triage feature with
@@ -67,7 +66,7 @@ import { useFeedbackDialog, type FeedbackPrefill } from './features/feedback/use
 // renders nothing once it has been answered; `useViewDwell` reports how long each tab was on
 // screen. Both are local: the renderer only ever records into main's ring, and main decides —
 // behind the consent gates — whether anything is ever sent.
-import { TelemetryNotice } from './features/preferences/TelemetryNotice'
+//
 // What's new (JOS-73). The teaser strip is the telemetry notice's twin — one quiet line along
 // the bottom edge, never a modal — and renders nothing unless this launch is the first one after
 // an update. See features/whatsnew/WhatsNewTeaser.tsx.
@@ -313,7 +312,6 @@ const ViewContentMemo = memo(ViewContent)
 function BottomStrips({ prefs }: { prefs: PrefsRouting }): JSX.Element {
   return (
     <>
-      <TelemetryNotice onOpenDetails={() => prefs.openSection('analytics')} />
       <WhatsNewTeaser onOpen={() => prefs.openSection('whatsnew')} />
     </>
   )
@@ -547,8 +545,6 @@ export default function App(): JSX.Element {
       {/* Feedback is a DIALOG, not a view (appViews.ts is untouched), so it is hosted here and
           opened from the nav footer, from Preferences, and by the ErrorBoundary's "Report this"
           (which reloads and lands a prefilled bug — see useFeedbackDialog). */}
-      <FeedbackDialog open={feedback.open} onClose={feedback.close} prefill={feedback.prefill} />
-
       {/* The bottom edge: the first-run usage-analytics notice (plan T1 — the ONLY thing that
           sets `noticeShown`, which main's network gate requires) and the what's-new teaser
           (JOS-73). Both are slim bars rather than modals, and both render nothing most launches.
